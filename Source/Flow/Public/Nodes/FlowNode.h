@@ -12,9 +12,10 @@
 #include "Nodes/FlowPin.h"
 #include "FlowNode.generated.h"
 
+class IFlowOwnerInterface;
 class UFlowAsset;
 class UFlowSubsystem;
-class IFlowOwnerInterface;
+struct FFlowNodeSaveData;
 
 #if WITH_EDITOR
 DECLARE_DELEGATE(FFlowNodeEvent);
@@ -118,8 +119,11 @@ protected:
 	FGuid NodeGuid;
 
 public:
-	void SetGuid(const FGuid NewGuid) { NodeGuid = NewGuid; }
-	FGuid GetGuid() const { return NodeGuid; }
+	UFUNCTION(BlueprintCallable, Category = "FlowNode")
+	void SetGuid(const FGuid& NewGuid) { NodeGuid = NewGuid; }
+
+	UFUNCTION(BlueprintPure, Category = "FlowNode")
+	const FGuid& GetGuid() const { return NodeGuid; }
 
 	UFUNCTION(BlueprintPure, Category = "FlowNode")
 	UFlowAsset* GetFlowAsset() const;
@@ -239,6 +243,8 @@ public:
 	UFUNCTION(BlueprintPure, Category= "FlowNode")
 	bool IsOutputConnected(const FName& PinName) const;
 
+	static void RecursiveFindNodesByClass(UFlowNode* Node, const TSubclassOf<UFlowNode> Class, uint8 Depth, TArray<UFlowNode*>& OutNodes);
+
 //////////////////////////////////////////////////////////////////////////
 // Debugger
 protected:
@@ -326,7 +332,7 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "FlowNode", meta = (HidePin = "ActivationType"))
 	void TriggerOutputPin(const FFlowOutputPinHandle Pin, const bool bFinish = false, const EFlowPinActivationType ActivationType = EFlowPinActivationType::Default);
 
-public:	
+public:
 	// Finish execution of node, it will call Cleanup
 	UFUNCTION(BlueprintCallable, Category = "FlowNode")
 	void Finish();
